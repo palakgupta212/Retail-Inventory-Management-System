@@ -1,0 +1,11 @@
+import React, { useEffect, useState } from 'react';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+export default function ProductList({ token, onLogout }){
+  const [products,setProducts]=useState([]); const [title,setTitle]=useState(''); const [stock,setStock]=useState(0);
+  useEffect(()=>{ fetchProducts(); checkLowStock(); },[]);
+  async function fetchProducts(){ const res = await fetch(`${API}/products`, { headers: { 'Authorization': 'Bearer '+token }}); const data = await res.json(); setProducts(data); }
+  async function addProduct(e){ e.preventDefault(); const res = await fetch(`${API}/products`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ name:title, sku: Date.now().toString().slice(-6), stock: parseInt(stock) || 0 })}); const p = await res.json(); fetchProducts(); setTitle(''); setStock(0); }
+  async function deleteProduct(id){ await fetch(`${API}/products/${id}`, { method:'DELETE', headers:{ 'Authorization':'Bearer '+token }}); fetchProducts(); }
+  async function checkLowStock(){ const res = await fetch(`${API}/products/low-stock/5`, { headers:{ 'Authorization':'Bearer '+token}}); const low = await res.json(); if(low && low.length) alert('Low stock alert for '+low.length+' product(s)'); }
+  return (<div><div className="d-flex justify-content-between align-items-center mb-3"><h4>Products</h4><div><button className="btn btn-outline-secondary me-2" onClick={()=>onLogout()}>Logout</button></div></div><form onSubmit={addProduct} className="mb-3 d-flex gap-2"><input required className="form-control" placeholder="Product name" value={title} onChange={e=>setTitle(e.target.value)} /><input className="form-control" type="number" placeholder="Stock" value={stock} onChange={e=>setStock(e.target.value)} /><button className="btn btn-success">Add</button></form><ul className="list-group">{products.map(p=>(<li key={p._id} className="list-group-item d-flex justify-content-between align-items-center"><div><strong>{p.name}</strong><div><small>SKU: {p.sku} | Stock: {p.stock}</small></div></div><div><button className="btn btn-sm btn-danger" onClick={()=>deleteProduct(p._id)}>Delete</button></div></li>))}</ul></div>);
+}

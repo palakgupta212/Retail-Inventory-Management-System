@@ -1,0 +1,1 @@
+React frontend for Retail Inventory Management. Run `npm install` and `npm start`.
